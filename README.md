@@ -1,118 +1,105 @@
 # Learning Automation Toolkit
 
-[简体中文](README.zh-CN.md) · [Project background](https://sang4242.pages.dev/en/projects/course-automation/) · [Sources and attribution](docs/sources.md)
+[简体中文](README.zh-CN.md) · [Project](https://sang4242.pages.dev/en/projects/course-automation/) · [Context system](https://sang4242.pages.dev/en/projects/agent-context/)
 
-Scripts and working conventions I use to turn documents and video material into illustrated Markdown notes. They grew from individual conversion tools into a workflow that combines page images, transcription, time alignment, selected video frames and source references.
+This is the collection of tools and conventions I used throughout my second year of university. It grew from slide rendering and contact sheets into recording retrieval, transcription, classroom overviews, time alignment, selected frames and illustrated Markdown notes. Through a semester of regular use and adjustment, the components became reasonably stable in my own environment.
 
-The tools carry out concrete operations. An AI assistant reads the material, decides when a closer visual check is needed, selects useful frames and writes the notes according to the workflow. This repository contains those tools and conventions, not a single end-to-end note-generation application.
+The design goes beyond scripts: **layered navigation makes resources discoverable, course context keeps the state, task plugins organize work, full specifications define the output, and AI decides what to inspect and how to explain it.**
 
-## What's included
+## A complete, real course example
 
-| Directory | Contents |
+[Algorithm Design and Analysis: the divide-and-conquer class of 2 April 2026](examples/algorithm-divide-conquer/README.en.md) includes the full chain:
+
+| Material | Read it |
 | --- | --- |
-| `tools/documents/` | Word/PPT to PDF, PDF page rendering, batch inputs, engine-aware Office caches and image-stitching integration. |
-| `tools/images/` | Labeled image grids and remote-image localization into Typora-style `.assets` directories. |
-| `tools/media/` | Qwen3-ASR HTTP client with low-energy chunking/concurrency/VAD, Forced Aligner integration, sentence timestamp lookup and subtitle conversion. |
-| `tools/mineru/` | MinerU API client, batch polling and Markdown/assets result organization. |
-| `workflows/` | [Slide workflow](workflows/slides.md) and [video workflow](workflows/video.md), currently written in Chinese for the AI assistant. |
-| `examples/` | Self-authored input, reproducible processing steps and finished Markdown notes. |
-| `tests/` | Model-free regression checks. |
+| Complete ASR transcript | [Classroom transcript](examples/algorithm-divide-conquer/ASR转录/算法设计与分析_2026-04-02_qwen_vllm.md) |
+| Overview and slide mapping | [Class overview](examples/algorithm-divide-conquer/.agent/asr概述/2026-04-02_Ch5.md) |
+| Complete slides | [Chapter 5 and prerequisite Chapters 3/4](examples/algorithm-divide-conquer/课件/) |
+| Chapter notes and 27 illustrations | [Full divide-and-conquer notes](examples/algorithm-divide-conquer/笔记/ch5_分治法.md) |
+| Course context | [Material entry](examples/algorithm-divide-conquer/.agent/memory.md) and [original course rules](examples/algorithm-divide-conquer/.agent/context/原课程上下文.md) |
 
-Canvas and course-platform acquisition/query tools remain separate associated projects. The reusable material-processing part is collected here; the broader personal Hub and private course library stay outside the repository.
+![Slide P7 used by the actual chapter notes](examples/algorithm-divide-conquer/笔记/ch5_分治法.assets/ch5_P7.jpg)
 
-## Start with the examples
+The teaching materials and classroom transcript are shared with permission **solely to demonstrate the complete workflow and its results**. Their original authors/instructor retain their rights; see the case introduction. These are the actual full documents, not a newly generated miniature example.
 
-![Overview of the three self-authored slides](examples/preview/slides-overview_第1页.jpg)
+## Architecture
 
-- [Slide notes](examples/slide-notes.md): source page → selected figure → explanation and page reference.
-- [Video notes](examples/video-notes.md): sentence ID → timestamp → extracted frame → Markdown image reference.
-- [Example builder](examples/build_demo.py): creates the source slides/PDF and a 15-second silent video, then runs the conversion, stitching, subtitle and frame steps.
+```text
+Hub entry: route a task to materials, conventions and tools
+  ├─ Calling guide → tool README → scripts / models / external programs
+  └─ Course .agent/memory.md: resources, rules and installed plugins
+       ├─ progress.md: current state and next steps
+       ├─ completed_tasks_log.md: completed work and questions
+       ├─ plugins/: task-specific installed workflows
+       └─ slides, ASR transcript, overview, notes and images
+```
 
-The example's subtitles and time index are authored in the builder. They demonstrate lookup and visual processing; they are not ASR or forced-alignment output. Real ASR and alignment require the optional model setup below.
+- **Layered reading:** establish the map, then follow only relevant entries. Parameters stay with tools; course details stay with courses.
+- **Three-file context:** stable information, current state and completed history have separate homes, so a new conversation can continue.
+- **Plugins:** install course explanation or ASR workflows when needed, load them on their declared triggers, and retain course-specific rules when updating them.
+- **AI plus tools:** scripts execute rendering, retrieval, transcription and frame extraction. AI checks readability, selects visuals, verifies terminology and structures the notes.
 
-## Install and reproduce the lightweight path
+Read the [full architecture](docs/architecture.md), browse the [Hub entry](hub/.agent/memory.md), or see the [installed-plugin course example](examples/plugin-course/README.md). The original specifications, tool guides and course documents are in Chinese; this README provides an English entry to them.
 
-Python 3.10+ is required; the current base checks used Python 3.13 on Windows 11. Install ImageMagick 7 with Ghostscript for PDF rendering, and FFmpeg for the video example. Keep `magick`, `ffmpeg` and `ffprobe` on PATH.
+## Full specifications and plugins
+
+| Document | Purpose |
+| --- | --- |
+| [Context types and plugin registry](standards/上下文规范/.agent/memory.md) | Selection, installation and upgrades |
+| [General project specification](standards/上下文规范/通用项目/通用项目上下文规范.md) | Software, tools and delivery projects |
+| [Course-learning specification](standards/上下文规范/课程学习/课程学习上下文规范.md) | Theory courses, chapter study and questions |
+| [Course-task specification](standards/上下文规范/课程任务/课程任务上下文规范.md) | Reports, assignments and presentations |
+| [Course explanation plugin](standards/上下文规范/课程学习/插件/课程讲解与答疑.md) | Material selection and teaching pace |
+| [ASR organization plugin](standards/上下文规范/课程学习/插件/ASR录播整理.md) | Transcripts, overviews, emphasis and slide mapping |
+| [Slide-note specification](standards/笔记整理规范/PPT课件笔记整理规范.md) | Prerequisites, explanation, page references and figures |
+| [Video-note specification](standards/笔记整理规范/视频图文笔记整理规范.md) | Narrative, time anchors and visual explanation |
+| [Video-processing workflow](standards/笔记整理规范/视频图文笔记处理流程.md) | Retrieval, transcription, alignment and frame selection |
+
+These are the full source documents and templates, not replacements condensed into short workflows. Add a task plugin by defining its prerequisites, trigger, inputs, steps, output and write-back locations; copy it into the project's `.agent/plugins/` and register it in the entry. Shared updates do not automatically overwrite a project's installed rules. See the [specification index](standards/README.md).
+
+## Tools and original manuals
+
+| Module | Included capabilities | Documentation |
+| --- | --- | --- |
+| Retrieval | Look recordings/slides, length checks, resume/retry; yt-dlp media and subtitles | [Retrieval guide](tools/acquisition/README.md) |
+| Course tools | Shared CLI, YourTJ, timetable export/query, Look | [Tools and complete READMEs](tools/course-tools/README.md) |
+| Documents | Office→PDF→page images, WPS/Office/LibreOffice, batches, cache, pages and contact sheets | [Document tools](tools/documents/README.md) |
+| Images | Grids, selection, labels, ImageMagick recipes and Markdown image localization | [Image tools](tools/images/README.md) |
+| Speech and time | Concurrent vLLM requests, low-energy chunking, VAD, WSL auto-start/idle release, direct Qwen/Whisper fallbacks, alignment and lookup | [Full speech guide and original .agent entry](tools/media/README.md) |
+| MinerU | Local GPU wrapper, API batches, polling, caches, Markdown and .assets organization | [Both routes and original manuals](tools/mineru/README.md) |
+
+The original Hub guides for [documents](hub/guides/工具-文档.md), [media](hub/guides/工具-音视频.md) and [course tools](hub/guides/工具-课程.md) are included. The [public command map](hub/README.md) relates the original machine layout to this repository. Canvas remains a separate CLI/MCP project composed with these tools.
+
+## Get started
+
+Choose the modules you need. The base image tools use Python 3.10+ and Pillow. PDF rendering needs ImageMagick and Ghostscript; media processing needs FFmpeg. Install Office engines and GPU environments according to the relevant tool README.
 
 ```powershell
 git clone https://github.com/SANG4242/learning-automation-toolkit.git
 cd learning-automation-toolkit
 python -m pip install -r requirements.txt
-python examples/build_demo.py
-python -m unittest discover -s tests -v
+python tools/documents/pdf2img.py slides.pdf --output .local/pages
 ```
 
-The builder writes generated source assets under `examples/input/`, the preview under `examples/preview/`, and intermediate pages under `.local/`. It regenerates its own example files. Open the notes in Typora or GitHub to inspect the final result.
+Create context for your course, install the task plugins, and give the AI the course entry, source locations and intended output. For example: “Follow the course entry and installed plugins to prepare this class's ASR overview, then write illustrated notes using the full slide specification.” It follows the indexes, chooses inputs, runs tools, inspects the results and updates the course records.
 
-### Process your documents
-
-```powershell
-python tools/documents/pdf2img.py input.pdf --pages 1-3 --output .local/pages
-python tools/documents/doc2img.py input.docx --engine office
-python tools/documents/ppt2img.py slides.pptx --engine libreoffice --libreoffice-path 'C:/Program Files/LibreOffice/program/soffice.com'
-python tools/images/image_stitcher.py -i .local/pages --preset 4
-python tools/images/localize_md_images.py notes --dry-run
-```
-
-Word/PPT conversion uses installed WPS, Microsoft Office or LibreOffice. Office/WPS COM execution is Windows-specific. PDF rendering and image scripts can be used independently. Office defaults follow the original tools: `docx2pdf` uses WPS; the other Office entry points use Microsoft Office unless an engine is specified.
-
-Image localization modifies Markdown in place when `--dry-run` is omitted. Review the target directory and keep a version-controlled copy. PDF `--force` moves existing page images into a `previous/` subdirectory before regenerating them. Its normal page cache is based on existing output files; force regeneration after changing a source PDF or output settings.
-
-## Optional speech and alignment
-
-The model weights and GPU environment are separate from the base Python requirements.
-
-1. Install the client dependencies with `python -m pip install -r requirements/asr-client.txt`.
-2. Prepare a Linux/WSL vLLM environment supporting Qwen3-ASR. The original local setup used vLLM 0.22.0; this public launcher has not yet been retested against a clean GPU environment. `tools/media/start_vllm_asr.sh` is a parameterized foreground launch recipe. Set `QWEN_ASR_MODEL` to the model name/path and adjust memory utilization to the machine.
-3. Start the service yourself and point the client at its health/audio-transcription endpoints. The public client neither starts WSL automatically nor stops other model processes.
+ASR entry:
 
 ```powershell
-$env:QWEN_ASR_MODEL = 'Qwen/Qwen3-ASR-1.7B'
+python -m pip install -r requirements/asr-client.txt
 $env:LEARNING_AUDIO_DIR = 'C:/study/audio'
-python tools/media/transcribe_qwen_vllm.py --file lesson.mp4 --url http://localhost:8000 --out-dir .local/transcripts
+$env:QWEN_ASR_MODEL = 'Qwen/Qwen3-ASR-1.7B'
+python -u tools/media/transcribe_qwen_vllm.py --file lesson.mp4
 ```
 
-The request's model name must match the service's served model. Output includes `transcript.md`, `chunks.json` and chunk audio. For alignment, install a CUDA-compatible PyTorch environment and `requirements/alignment.txt`, then run:
+See the [speech README](tools/media/README.md) for WSL services, models, alignment, fallbacks and configuration. Intermediates default to `.local/`, configurable with `LEARNING_TOOLS_DATA_DIR`. Supply your own authentication and install model weights separately.
 
-```powershell
-python tools/media/align_qwen.py .local/transcripts/lesson_qwen_vllm/chunks.json --model Qwen/Qwen3-ForcedAligner-0.6B
-python tools/media/query_timestamp.py .local/transcripts/lesson_qwen_vllm/sentences.jsonl S00001
-```
+## Use and feedback
 
-On a small GPU, stop the ASR server through your own process manager before loading the aligner. Sentence lookup supports IDs, normalized text and string similarity; the AI assistant maps a concept back to the relevant wording. It is not a vector search engine.
+The toolkit comes from sustained personal study and has primarily been used on my own machine. The GitHub version separates personal paths, configuration and credentials, so it differs from my daily local setup. If you encounter a problem, please [open an Issue](https://github.com/SANG4242/learning-automation-toolkit/issues); I will do my best to help investigate and resolve it.
 
-### Configuration
+A [small authored slide demo](examples/slide-notes.md) and [video-location demo](examples/video-notes.md) remain available for a quick try, alongside the full real course case.
 
-| Variable | Purpose |
-| --- | --- |
-| `LEARNING_TOOLS_DATA_DIR` | Intermediate/cache root; defaults to repository `.local/`. |
-| `LEARNING_AUDIO_DIR` / `LEARNING_TRANSCRIPT_DIR` | ASR input/output roots. |
-| `QWEN_ASR_URL` / `QWEN_ASR_MODEL` | ASR service URL and request model. |
-| `QWEN_ALIGNER_MODEL` | Aligner path/name. |
-| `SILERO_VAD_MODEL` | Local VAD ONNX path; missing weights may be downloaded from the upstream URL. |
-| `FFMPEG_BIN_DIR` / `LIBREOFFICE_PATH` | Optional external-program locations. |
-| `MINERU_API_TOKEN` | Required only for the cloud MinerU client. |
+## License and sources
 
-## Optional structured parsing
-
-```powershell
-python tools/mineru/mineru_pdf2md.py --help
-python tools/mineru/mineru_pdf2md.py submit document.pdf --output .local/mineru
-```
-
-Set `MINERU_API_TOKEN` in your environment first. This route uploads material to the external MinerU service; choose it only for material you intend to send there. Page-image reading is a separate local route. The public API client has syntax/CLI checks; a real API request remains to be retested.
-
-## Verification in this release
-
-- Three-page PDF rendering and stitching, authored subtitle conversion, timestamp lookup, silent-video generation and FFmpeg extraction ran successfully; the overview and selected frame were visually reviewed.
-- Seven model-free unit tests cover page selection, safe names, timestamps, text lookup, sentence splitting, zero-second subtitles and image filenames.
-- The release process checks Python syntax, CLI entry points, local Markdown references and credentials before upload.
-- The public ASR/aligner GPU environment, Office COM engines and cloud MinerU request still need dedicated end-to-end verification. No general transcription-speed claim is made from the example.
-
-## Using it with an AI assistant
-
-Give the assistant the input paths, intended audience, output location and the appropriate `workflows/` file. It needs permission to run the scripts and a way to inspect images. A useful output keeps a source anchor, explains figures in context and separates the source material from added explanations. Review the finished notes against the original.
-
-## License and upstream software
-
-The repository's own scripts and authored examples are [MIT](LICENSE). Models, document engines and APIs retain their own licenses and terms. See [sources and scope](docs/sources.md) for the implementation/engine split.
+The repository's own scripts, specifications and authored demos are [MIT](LICENSE). Teaching material and classroom content in the real case are included only for the stated demonstration purpose. Models, engines, APIs and third-party documents retain their own terms. See [sources and original-document notes](docs/sources.md).

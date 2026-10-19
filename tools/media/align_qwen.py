@@ -130,7 +130,9 @@ def merge_cross_chunk_sentences(sentences: list[dict], hard_limit: int = 100) ->
 def stop_vllm_if_requested(enabled: bool) -> None:
     if not enabled:
         return
-    raise ValueError("请通过自己的服务管理方式停止 ASR，再运行对齐；本工具不终止其他进程。")
+    from asr_service import stop_managed_service
+    print("停止本工具管理的 ASR 服务，释放对齐需要的显存...")
+    stop_managed_service()
 
 
 def write_jsonl(path: Path, records: list[dict]) -> None:

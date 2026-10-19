@@ -1,5 +1,9 @@
-.agent/
+/.agent/
 .local/
+.cache/
+cookies*.txt
+*_cookies.json
+local-settings.json
 temp/
 .venv/
 __pycache__/

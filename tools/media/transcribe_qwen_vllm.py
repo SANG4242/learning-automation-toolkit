@@ -1,6 +1,6 @@
 """Qwen3-ASR HTTP 客户端：浮动切片、并发请求、VAD 与转录清单。
 
-先启动兼容的 ASR 服务，再用 --url 指定地址。
+默认连接或自动启动本地WSL服务；外部兼容服务可用 --url 指定。
 环境配置见仓库 README；依赖见 requirements/asr-client.txt。
 任务输出包含 transcript.md、chunks.json 和 chunks/。
 """
@@ -338,12 +338,14 @@ def check_url_health(url: str) -> bool:
 
 
 def ensure_server_running(url_arg: str, is_default_url: bool) -> bool:
-    """检查使用者已经启动的 ASR 服务，不管理其他进程。"""
+    """连接已有服务，或按本地配置自动启动 WSL 服务。"""
+    from asr_service import ensure_service
     global VLLM_URL
-    VLLM_URL = url_arg.rstrip("/")
-    if check_url_health(VLLM_URL):
+    resolved = ensure_service(url_arg, is_default_url)
+    if resolved:
+        VLLM_URL = resolved
         return True
-    print(f"ASR 服务不可达：{VLLM_URL}。请先启动服务，或用 --url 指定地址。")
+    print(f"ASR 服务不可达：{url_arg}。请检查启动日志或 --url 配置。")
     return False
 
 

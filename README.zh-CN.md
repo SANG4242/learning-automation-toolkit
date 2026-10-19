@@ -1,118 +1,107 @@
 # 学习自动化工具链
 
-[English](README.md) · [项目背景](https://sang4242.pages.dev/zh/projects/course-automation/) · [来源与范围](docs/sources.md)
+[English](README.md) · [项目介绍](https://sang4242.pages.dev/zh/projects/course-automation/) · [上下文系统](https://sang4242.pages.dev/zh/projects/agent-context/)
 
-这是我在学习过程中使用的一组脚本和整理规范：从文档转图开始，逐步加入语音转录、时间对齐、视频选帧，以及带来源和配图的 Markdown 笔记。
+这是我在整个大二学年的课程学习中使用和持续调整的一套工具与规范。从课件转图、拼接预览开始，逐步加入录播获取、语音转录、课堂概述、时间对齐、按需抽帧和图文笔记。经过一学期的持续使用与调整，各个部件在我的本机环境中已基本稳定。
 
-工具执行明确的文件操作；AI 助手阅读材料、判断哪里需要放大或看画面、选择图片，再按工作流组织笔记。仓库提供这些工具与约定，整体工作由助手结合材料串联。
+它的核心不只是脚本：**分层导航让 AI 找到资料，课程上下文保存状态，任务插件组织工作，完整规范约定成果，工具负责明确执行，AI 根据材料判断下一步。**
 
-## 仓库内容
+## 先看完整真实案例
 
-| 目录 | 内容 |
+[算法设计与分析：2026-04-02 分治法课](examples/algorithm-divide-conquer/README.md)保留整条实际资料链：
+
+| 资料 | 直接阅读 |
 | --- | --- |
-| `tools/documents/` | Word／PPT 转 PDF、PDF 转图、批量输入、Office 引擎感知缓存及拼接调用。 |
-| `tools/images/` | 带标签的图片网格；将在线图片归入 Typora 风格 `.assets` 目录。 |
-| `tools/media/` | Qwen3-ASR HTTP 客户端、低能量切片、并发、VAD、Forced Aligner 接入、句子时间查询和字幕转换。 |
-| `tools/mineru/` | MinerU API 调用、批任务轮询、Markdown 与图片结果整理。 |
-| `workflows/` | [课件流程](workflows/slides.md)和[视频流程](workflows/video.md)，供 AI 助手读取执行。 |
-| `examples/` | 自制输入、处理步骤和成品笔记。 |
-| `tests/` | 无需模型的基础回归。 |
+| 完整ASR原文 | [当天课堂转录](examples/algorithm-divide-conquer/ASR转录/算法设计与分析_2026-04-02_qwen_vllm.md) |
+| 课堂概述与课件映射 | [当天概述](examples/algorithm-divide-conquer/.agent/asr概述/2026-04-02_Ch5.md) |
+| 完整课件 | [Ch5分治法及Ch3／Ch4复习课件](examples/algorithm-divide-conquer/课件/) |
+| 章节笔记与27张配图 | [完整分治法笔记](examples/algorithm-divide-conquer/笔记/ch5_分治法.md) |
+| 课程上下文 | [案例资料入口](examples/algorithm-divide-conquer/.agent/memory.md)、[原课程规则](examples/algorithm-divide-conquer/.agent/context/原课程上下文.md) |
 
-Canvas、课程平台获取和查询等工具保留为关联项目；本仓库集中维护通用材料处理。个人 Hub、真实课程资料与学习进度分别留在原位置。
+![实际章节笔记使用的课件P7](examples/algorithm-divide-conquer/笔记/ch5_分治法.assets/ch5_P7.jpg)
 
-## 先看示例
+课程课件和课堂转录经许可公开，**仅用于演示完整整理效果**，保留原作者／授课者权利；来源、范围和使用说明见案例入口。这里不是重新生成的一小段演示，而是实际学习中的完整原文、概述和章节成果。
 
-![三页自制课件的拼接预览](examples/preview/slides-overview_第1页.jpg)
+## 整体架构
 
-- [课件笔记](examples/slide-notes.md)：来源页 → 选图 → 解释与页码。
-- [视频笔记](examples/video-notes.md)：句子 ID → 时间区间 → 抽帧 → Markdown 图片引用。
-- [示例生成脚本](examples/build_demo.py)：创建课件图片、PDF 和 15 秒无声视频，再调用转换、拼接、字幕和抽帧工具。
+```text
+Hub入口：按任务定位资料、规范和工具
+  ├─ 调用指南 → 工具README → 脚本／模型／外部程序
+  └─ 课程.agent/memory.md：资料导航、维护规则、已安装插件
+       ├─ progress.md：当前状态和下一步
+       ├─ completed_tasks_log.md：完成历史和答疑
+       ├─ plugins/：按任务安装并触发的流程
+       └─ 课件、ASR原文、概述、笔记、图片
+```
 
-示例字幕和时间索引由脚本人工定义，用来展示时间查询与画面处理。真实 ASR 和强制对齐需要下面的可选模型环境。
+- **逐层读取**：先建立内容分布印象，再进入当前任务相关资料；详细参数和课程细节下放到各自入口。
+- **三文件分工**：稳定信息、当前状态、完成历史各有位置，新窗口能沿记录继续。
+- **插件化**：课程讲解、ASR录播整理等任务流程可以独立安装，按触发时机加载；课程特化放在本地插件开头，升级时保留。
+- **AI与工具配合**：脚本执行转换、下载、转录和抽帧；AI判断看不看得清、哪些画面有用、如何核对和组织内容。
 
-## 安装与轻量流程复现
+详细设计见[架构与使用](docs/architecture.md)，实际导航见[Hub入口](hub/.agent/memory.md)，插件如何落地见[插件课程示例](examples/plugin-course/README.md)。
 
-需要 Python 3.10+，本轮基础检查使用 Windows 11 和 Python 3.13。PDF 转图需要 ImageMagick 7 与 Ghostscript；视频示例需要 FFmpeg。将 `magick`、`ffmpeg`、`ffprobe` 加入 PATH。
+## 完整规范与插件
+
+本次收录原规范正文和详细模板，不用短版工作流替代。
+
+| 规范 | 用途 |
+| --- | --- |
+| [上下文规范库与插件总索引](standards/上下文规范/.agent/memory.md) | 类型选择、安装、版本与升级 |
+| [通用项目规范](standards/上下文规范/通用项目/通用项目上下文规范.md) | 软件、工具和交付项目的上下文 |
+| [课程学习规范](standards/上下文规范/课程学习/课程学习上下文规范.md) | 理论课程、章节学习和答疑 |
+| [课程任务规范](standards/上下文规范/课程任务/课程任务上下文规范.md) | 报告、展示、作业类课程 |
+| [课程讲解与答疑插件](standards/上下文规范/课程学习/插件/课程讲解与答疑.md) | 资料选择、节奏与讲解方式 |
+| [ASR录播整理插件](standards/上下文规范/课程学习/插件/ASR录播整理.md) | 转录查阅、概述、课堂重点和课件映射 |
+| [PPT课件笔记规范](standards/笔记整理规范/PPT课件笔记整理规范.md) | 前置知识、解释、逐页来源与图片 |
+| [视频图文笔记规范](standards/笔记整理规范/视频图文笔记整理规范.md) | 讲解主线、时间锚点、配图与成文 |
+| [视频处理流程](standards/笔记整理规范/视频图文笔记处理流程.md) | 获取、转录、对齐、抽帧和选图 |
+
+可以为特定任务继续增加插件：把适用前提、读取时机、输入、流程、输出与写回位置写清楚，复制到项目 `.agent/plugins/` 并在入口登记即可。规范源更新不自动覆盖项目；个人配置与通用正文分开维护。完整说明见[规范入口](standards/README.md)。
+
+## 工具与原说明
+
+| 模块 | 已收录能力 | 入口与详细原文 |
+| --- | --- | --- |
+| 材料获取 | Look录播／课件、断点续传、长度检查、重试；yt-dlp视频及字幕调用 | [获取指南](tools/acquisition/README.md) |
+| 课程工具 | 统一入口、YourTJ、课表导出／查询、Look工具 | [完整工具与README](tools/course-tools/README.md) |
+| 文档处理 | Word/PPT→PDF→页图，WPS／Office／LibreOffice，批处理、缓存、页码与拼接 | [详细说明](tools/documents/README.md) |
+| 图片处理 | 网格预览、选图、标签、ImageMagick命令、Markdown图片本地化 | [详细说明](tools/images/README.md) |
+| ASR与时间 | vLLM并发、低能量切片、VAD、自动WSL启动与空闲释放、直接Qwen和Whisper备用、对齐与查询 | [完整说明及原项目.agent](tools/media/README.md) |
+| MinerU | 本地GPU包装、API批任务、轮询、缓存、Markdown与.assets整理 | [两条路线及原说明](tools/mineru/README.md) |
+
+Hub的[文档](hub/guides/工具-文档.md)、[音视频](hub/guides/工具-音视频.md)、[课程](hub/guides/工具-课程.md)原调用指南也已保留。[公开命令导航](hub/README.md)说明本机原路径与仓库入口的对应关系。Canvas课程助手继续作为独立项目通过CLI／MCP组合使用。
+
+## 开始使用
+
+先克隆仓库，选择自己需要的模块。基础图片处理需要Python 3.10+和Pillow；文档转图需要ImageMagick与Ghostscript；媒体处理需要FFmpeg。Office转换和GPU推理环境分别按对应工具README安装。
 
 ```powershell
 git clone https://github.com/SANG4242/learning-automation-toolkit.git
 cd learning-automation-toolkit
 python -m pip install -r requirements.txt
-python examples/build_demo.py
-python -m unittest discover -s tests -v
+python tools/documents/pdf2img.py 课件.pdf --output .local/pages
 ```
 
-示例脚本在 `examples/input/` 生成输入，在 `examples/preview/` 保存拼接图，中间页图位于 `.local/`；重跑会更新它自己的演示文件。使用 Typora 或 GitHub 查看笔记与图片。
+为自己的课程建立上下文，安装所需插件，并给AI提供课程入口、原件位置与目标。比如：“按课程入口和已安装插件，先整理这一讲的ASR概述，再按完整课件规范制作笔记。”AI沿索引选资料、调用工具、查看结果，再写回课程文件。
 
-### 处理自己的文档
-
-```powershell
-python tools/documents/pdf2img.py input.pdf --pages 1-3 --output .local/pages
-python tools/documents/doc2img.py input.docx --engine office
-python tools/documents/ppt2img.py slides.pptx --engine libreoffice --libreoffice-path 'C:/Program Files/LibreOffice/program/soffice.com'
-python tools/images/image_stitcher.py -i .local/pages --preset 4
-python tools/images/localize_md_images.py notes --dry-run
-```
-
-Office 转换调用已安装的 WPS、Microsoft Office 或 LibreOffice；Office／WPS COM 路线仅适用于 Windows。PDF 转图和图片工具可单独使用。默认引擎沿用原工具：`docx2pdf` 默认 WPS，其余 Office 入口默认 Microsoft Office，也可显式指定。
-
-图片本地化去掉 `--dry-run` 后会原地修改 Markdown，运行前检查目标并保留版本。PDF `--force` 会先把旧页图移到 `previous/`，再重新生成。普通页图缓存依据输出文件是否存在；源 PDF 或转换设置变化后，应强制重转。
-
-## 可选：语音转录与精细对齐
-
-模型权重和 GPU 推理环境与基础 Python 依赖分开安装。
-
-1. 使用 `python -m pip install -r requirements/asr-client.txt` 安装客户端依赖。
-2. 在 Linux／WSL 准备支持 Qwen3-ASR 的 vLLM 环境。原本机环境使用 vLLM 0.22.0；公开启动样例尚未在干净 GPU 环境重测。`tools/media/start_vllm_asr.sh` 提供参数化前台启动方式，`QWEN_ASR_MODEL` 指定模型位置，显存比例按设备调整。
-3. 自行启动服务，再让客户端连接其健康和转录接口。公开客户端只连接指定服务，进程启停由使用者管理。
+ASR主入口示例：
 
 ```powershell
-$env:QWEN_ASR_MODEL = 'Qwen/Qwen3-ASR-1.7B'
+python -m pip install -r requirements/asr-client.txt
 $env:LEARNING_AUDIO_DIR = 'C:/study/audio'
-python tools/media/transcribe_qwen_vllm.py --file lesson.mp4 --url http://localhost:8000 --out-dir .local/transcripts
+$env:QWEN_ASR_MODEL = 'Qwen/Qwen3-ASR-1.7B'
+python -u tools/media/transcribe_qwen_vllm.py --file lesson.mp4
 ```
 
-请求中的模型名需与服务提供的名称一致。任务生成 `transcript.md`、`chunks.json` 和分块音频。精细对齐需要匹配 CUDA 的 PyTorch 环境及 `requirements/alignment.txt`：
+WSL服务、模型、对齐、备用路线及环境变量详见[语音工具README](tools/media/README.md)。中间数据默认保存在仓库 `.local/`，可通过 `LEARNING_TOOLS_DATA_DIR` 配置；认证由自己的环境提供，模型权重独立安装。
 
-```powershell
-python tools/media/align_qwen.py .local/transcripts/lesson_qwen_vllm/chunks.json --model Qwen/Qwen3-ForcedAligner-0.6B
-python tools/media/query_timestamp.py .local/transcripts/lesson_qwen_vllm/sentences.jsonl S00001
-```
+## 使用情况与反馈
 
-小显存设备按自己的服务管理方式停止 ASR 后，再加载对齐模型。时间查询支持句子 ID、文本规范化和字符串相似度；AI 助手负责把知识点对应到原文，脚本再给出时间。
+这套工具源于我自己的长期学习实践，目前主要在我的本机环境使用。GitHub版本抽离了个人路径、配置与认证，与本地日常版本存在差异。如果你在实际运行中遇到问题，欢迎[提交Issue](https://github.com/SANG4242/learning-automation-toolkit/issues)，我会尽力协助排查和解决。
 
-### 环境配置
+另外保留[小型自制演示](examples/slide-notes.md)和[视频定位演示](examples/video-notes.md)，便于快速尝试，不替代上面的真实完整课程案例。
 
-| 变量 | 用途 |
-| --- | --- |
-| `LEARNING_TOOLS_DATA_DIR` | 中间产物与缓存根目录，默认仓库 `.local/`。 |
-| `LEARNING_AUDIO_DIR`／`LEARNING_TRANSCRIPT_DIR` | ASR 输入和输出根目录。 |
-| `QWEN_ASR_URL`／`QWEN_ASR_MODEL` | ASR 服务地址及请求模型名。 |
-| `QWEN_ALIGNER_MODEL` | 对齐模型名或目录。 |
-| `SILERO_VAD_MODEL` | VAD ONNX 位置，缺失时可从上游地址下载。 |
-| `FFMPEG_BIN_DIR`／`LIBREOFFICE_PATH` | 可选的外部程序位置。 |
-| `MINERU_API_TOKEN` | 云端 MinerU 客户端所需认证。 |
+## 许可与来源
 
-## 可选：结构化解析
-
-```powershell
-python tools/mineru/mineru_pdf2md.py --help
-python tools/mineru/mineru_pdf2md.py submit document.pdf --output .local/mineru
-```
-
-先在环境中设置 `MINERU_API_TOKEN`。该路线会把材料上传到外部 MinerU 服务，仅用于你愿意发送到该服务的内容；本地页图阅读是另一条路线。公开 API 客户端已检查语法和命令入口，真实 API 请求待重测。
-
-## 本轮验证范围
-
-- 实际完成三页 PDF 转图和拼接、人工字幕转换、时间查询、无声视频生成和 FFmpeg 抽帧，并查看了拼接图与选中帧。
-- 七项无模型测试覆盖页码、安全命名、时间格式、原文查询、短句拆分、零秒字幕和图片文件名。
-- 发布前检查 Python 语法、CLI 入口、Markdown 本地引用和认证信息。
-- 公开 ASR／对齐 GPU 环境、Office COM 引擎和云端 MinerU 请求仍需专项端到端验证。示例用于流程复现，转录性能需用实际音频及完整计时条件测量。
-
-## 如何交给 AI 助手使用
-
-提供输入路径、读者基础、笔记位置和适用的 `workflows/` 文件。助手需要脚本执行权限和看图能力，再按内容判断下一步。成品应保留来源、解释配图、区分原材料与补充内容；最后对照原件检查。
-
-## 许可证与上游
-
-自有脚本和自制示例采用 [MIT](LICENSE)。模型、文档引擎与 API 分别遵循自身许可和条款。具体分工见[来源与范围](docs/sources.md)。
+自有脚本、规范和自制演示采用[MIT](LICENSE)。真实课程案例中的课件与课堂内容仅按案例说明用于效果展示；模型、引擎、API和第三方文档遵循自身许可。具体来源见[组件与原稿说明](docs/sources.md)。
