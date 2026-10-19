@@ -4,7 +4,7 @@
 
 This is the collection of tools and conventions I used throughout my second year of university. It grew from slide rendering and contact sheets into recording retrieval, transcription, classroom overviews, time alignment, selected frames and illustrated Markdown notes. Through a semester of regular use and adjustment, the components became reasonably stable in my own environment.
 
-The design goes beyond scripts: **layered navigation makes resources discoverable, course context keeps the state, task plugins organize work, full specifications define the output, and AI decides what to inspect and how to explain it.**
+**The Hub coordinates navigation, task routing and shared tools. Each level's `.agent` manages its own materials and state, and AI follows those indexes down to the relevant course or project. Note specifications connect tool calls, reading and writing into a workflow, with AI deciding the next step from the material.**
 
 ## A complete, real course example
 
@@ -15,23 +15,24 @@ The design goes beyond scripts: **layered navigation makes resources discoverabl
 | Complete ASR transcript | [Classroom transcript](examples/algorithm-divide-conquer/ASR转录/算法设计与分析_2026-04-02_qwen_vllm.md) |
 | Overview and slide mapping | [Class overview](examples/algorithm-divide-conquer/.agent/asr概述/2026-04-02_Ch5.md) |
 | Complete slides | [Chapter 5 and prerequisite Chapters 3/4](examples/algorithm-divide-conquer/课件/) |
-| Chapter notes and 27 illustrations | [Full divide-and-conquer notes](examples/algorithm-divide-conquer/笔记/ch5_分治法.md) |
+| Chapter notes and 27 image assets | [Full divide-and-conquer notes](examples/algorithm-divide-conquer/笔记/ch5_分治法.md) |
 | Course context | [Material entry](examples/algorithm-divide-conquer/.agent/memory.md) and [original course rules](examples/algorithm-divide-conquer/.agent/context/原课程上下文.md) |
 
 ![Slide P7 used by the actual chapter notes](examples/algorithm-divide-conquer/笔记/ch5_分治法.assets/ch5_P7.jpg)
 
-The teaching materials and classroom transcript are shared with permission **solely to demonstrate the complete workflow and its results**. Their original authors/instructor retain their rights; see the case introduction. These are the actual full documents, not a newly generated miniature example.
+The teaching materials and classroom transcript are shared with permission **solely to demonstrate the workflow and its results**. Their original authors/instructor retain their rights; see the case introduction for attribution and terms.
 
 ## Architecture
 
 ```text
-Hub entry: route a task to materials, conventions and tools
-  ├─ Calling guide → tool README → scripts / models / external programs
-  └─ Course .agent/memory.md: resources, rules and installed plugins
-       ├─ progress.md: current state and next steps
-       ├─ completed_tasks_log.md: completed work and questions
-       ├─ plugins/: task-specific installed workflows
-       └─ slides, ASR transcript, overview, notes and images
+Hub .agent: global navigation, task routing and shared tools
+  ├─ Domain .agent → Subdomain .agent → Course or project .agent
+  │    └─ Local materials, state, rules and next-level entries
+  └─ Tool guide → Tool README / .agent → Scripts / models / programs
+
+Course .agent → Task plugins and note specifications
+              → Tool calls, reading and visual selection
+              → Overviews / notes / images and study records
 ```
 
 - **Layered reading:** establish the map, then follow only relevant entries. Parameters stay with tools; course details stay with courses.
@@ -55,7 +56,7 @@ Read the [full architecture](docs/architecture.md), browse the [Hub entry](hub/.
 | [Video-note specification](standards/笔记整理规范/视频图文笔记整理规范.md) | Narrative, time anchors and visual explanation |
 | [Video-processing workflow](standards/笔记整理规范/视频图文笔记处理流程.md) | Retrieval, transcription, alignment and frame selection |
 
-These are the full source documents and templates, not replacements condensed into short workflows. Add a task plugin by defining its prerequisites, trigger, inputs, steps, output and write-back locations; copy it into the project's `.agent/plugins/` and register it in the entry. Shared updates do not automatically overwrite a project's installed rules. See the [specification index](standards/README.md).
+The directory includes specifications, templates and version records. To add a task plugin, define its prerequisites, trigger, inputs, steps, output and write-back locations, copy it into the project's `.agent/plugins/`, and register it in the entry. Compare updates with the installed copy and retain project-specific rules. See the [specification index](standards/README.md).
 
 ## Tools and original manuals
 
@@ -92,7 +93,12 @@ $env:QWEN_ASR_MODEL = 'Qwen/Qwen3-ASR-1.7B'
 python -u tools/media/transcribe_qwen_vllm.py --file lesson.mp4
 ```
 
-See the [speech README](tools/media/README.md) for WSL services, models, alignment, fallbacks and configuration. Intermediates default to `.local/`, configurable with `LEARNING_TOOLS_DATA_DIR`. Supply your own authentication and install model weights separately.
+Follow the deployment guide for the module you need:
+
+- [ASR deployment](tools/media/README.md#部署结构): Windows client, WSL vLLM service, model downloads, shared paths, automatic startup, alignment and troubleshooting.
+- [MinerU deployment](tools/mineru/README.md#本地gpu解析): isolated WSL environment, model configuration, local batches and cloud API submission/query.
+
+Intermediates default to `.local/`, configurable with `LEARNING_TOOLS_DATA_DIR`. Register the installed tools in your Hub so course note specifications can use them for matching tasks.
 
 ## Use and feedback
 

@@ -4,7 +4,7 @@
 
 这是我在整个大二学年的课程学习中使用和持续调整的一套工具与规范。从课件转图、拼接预览开始，逐步加入录播获取、语音转录、课堂概述、时间对齐、按需抽帧和图文笔记。经过一学期的持续使用与调整，各个部件在我的本机环境中已基本稳定。
 
-它的核心不只是脚本：**分层导航让 AI 找到资料，课程上下文保存状态，任务插件组织工作，完整规范约定成果，工具负责明确执行，AI 根据材料判断下一步。**
+**Hub 统筹导航、任务分流和共享工具入口；各层 `.agent` 管理本层资料与状态，AI 沿索引逐层下钻。笔记整理规范规定工具调用、阅读与成文步骤，AI 据此执行并判断下一步。**
 
 ## 先看完整真实案例
 
@@ -15,23 +15,23 @@
 | 完整ASR原文 | [当天课堂转录](examples/algorithm-divide-conquer/ASR转录/算法设计与分析_2026-04-02_qwen_vllm.md) |
 | 课堂概述与课件映射 | [当天概述](examples/algorithm-divide-conquer/.agent/asr概述/2026-04-02_Ch5.md) |
 | 完整课件 | [Ch5分治法及Ch3／Ch4复习课件](examples/algorithm-divide-conquer/课件/) |
-| 章节笔记与27张配图 | [完整分治法笔记](examples/algorithm-divide-conquer/笔记/ch5_分治法.md) |
+| 章节笔记与27张图片资源 | [完整分治法笔记](examples/algorithm-divide-conquer/笔记/ch5_分治法.md) |
 | 课程上下文 | [案例资料入口](examples/algorithm-divide-conquer/.agent/memory.md)、[原课程规则](examples/algorithm-divide-conquer/.agent/context/原课程上下文.md) |
 
 ![实际章节笔记使用的课件P7](examples/algorithm-divide-conquer/笔记/ch5_分治法.assets/ch5_P7.jpg)
 
-课程课件和课堂转录经许可公开，**仅用于演示完整整理效果**，保留原作者／授课者权利；来源、范围和使用说明见案例入口。这里不是重新生成的一小段演示，而是实际学习中的完整原文、概述和章节成果。
+课程课件和课堂转录经许可公开，**仅用于演示完整整理效果**，原作者／授课者保留权利，来源与使用范围见案例说明。
 
 ## 整体架构
 
 ```text
-Hub入口：按任务定位资料、规范和工具
-  ├─ 调用指南 → 工具README → 脚本／模型／外部程序
-  └─ 课程.agent/memory.md：资料导航、维护规则、已安装插件
-       ├─ progress.md：当前状态和下一步
-       ├─ completed_tasks_log.md：完成历史和答疑
-       ├─ plugins/：按任务安装并触发的流程
-       └─ 课件、ASR原文、概述、笔记、图片
+Hub .agent：全局导航、任务分流、共享工具入口
+  ├─ 领域.agent → 子领域.agent → 课程或项目.agent
+  │    └─ 本层资料、状态、规则与下一层入口
+  └─ 工具指南 → 工具README／.agent → 脚本／模型／外部程序
+
+课程.agent → 任务插件与笔记规范 → 按步骤调用工具、阅读和选图
+                               → 概述／笔记／图片及学习记录
 ```
 
 - **逐层读取**：先建立内容分布印象，再进入当前任务相关资料；详细参数和课程细节下放到各自入口。
@@ -43,7 +43,7 @@ Hub入口：按任务定位资料、规范和工具
 
 ## 完整规范与插件
 
-本次收录原规范正文和详细模板，不用短版工作流替代。
+规范目录提供上下文、任务插件和笔记整理的正文、模板与版本记录。
 
 | 规范 | 用途 |
 | --- | --- |
@@ -94,13 +94,18 @@ $env:QWEN_ASR_MODEL = 'Qwen/Qwen3-ASR-1.7B'
 python -u tools/media/transcribe_qwen_vllm.py --file lesson.mp4
 ```
 
-WSL服务、模型、对齐、备用路线及环境变量详见[语音工具README](tools/media/README.md)。中间数据默认保存在仓库 `.local/`，可通过 `LEARNING_TOOLS_DATA_DIR` 配置；认证由自己的环境提供，模型权重独立安装。
+部署按需要选择：
+
+- [ASR部署](tools/media/README.md#部署结构)：Windows客户端、WSL vLLM、模型下载、共享路径、自动启动、对齐与排错。
+- [MinerU部署](tools/mineru/README.md#本地gpu解析)：独立WSL环境、模型配置、本地批处理，以及云端API提交与查询。
+
+中间数据默认保存在仓库 `.local/`，由 `LEARNING_TOOLS_DATA_DIR` 配置。安装后将工具入口登记到自己的 Hub，课程中的笔记规范即可按任务使用。
 
 ## 使用情况与反馈
 
 这套工具源于我自己的长期学习实践，目前主要在我的本机环境使用。GitHub版本抽离了个人路径、配置与认证，与本地日常版本存在差异。如果你在实际运行中遇到问题，欢迎[提交Issue](https://github.com/SANG4242/learning-automation-toolkit/issues)，我会尽力协助排查和解决。
 
-另外保留[小型自制演示](examples/slide-notes.md)和[视频定位演示](examples/video-notes.md)，便于快速尝试，不替代上面的真实完整课程案例。
+[小型自制演示](examples/slide-notes.md)和[视频定位演示](examples/video-notes.md)便于快速尝试页图、时间查询和抽帧。
 
 ## 许可与来源
 
