@@ -1,0 +1,15 @@
+.agent/
+.local/
+temp/
+.venv/
+__pycache__/
+*.pyc
+*.log
+.env
+.env.*
+*.key
+*.pem
+*.onnx
+*.safetensors
+*.pt
+*.bin

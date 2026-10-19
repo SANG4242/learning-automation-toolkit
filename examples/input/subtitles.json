@@ -1,0 +1,19 @@
+{
+  "body": [
+    {
+      "from": 0,
+      "to": 5,
+      "content": "Keep diagrams, formulas and page layout."
+    },
+    {
+      "from": 5,
+      "to": 10,
+      "content": "A useful note points back to the evidence."
+    },
+    {
+      "from": 10,
+      "to": 15,
+      "content": "Check what tools cannot decide on their own."
+    }
+  ]
+}
